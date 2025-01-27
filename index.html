@@ -23,23 +23,26 @@
                 </div>
                 <div class="highlight"></div>
             </div>
-            <div class="balance" id="balance">Баланс: $АЛЕГА УЗНАЙ КА БАЛАНСИК$</div>
+            <div class="balance" id="balance">Баланс: $400</div>
 
             <div id="action-buttons" class="action-buttons">
-                <button onclick="sellNumber()">Продать</button>
+                <button onclick="sellInventoryNumber(lastGeneratedNumber)">Продать</button>
                 <button onclick="addToInventory()">Положить в инвентарь</button>
             </div>
         </div>
     </div>
     <script>
-        let balance = 400;
+        let balance = parseInt(localStorage.getItem('balance')) || 400; // Считываем баланс из localStorage, если он есть, или ставим 400 по умолчанию
         let lastGeneratedNumber = null;
-        let inventory = [];
+        let inventory = JSON.parse(localStorage.getItem('inventory')) || []; // Считываем инвентарь из localStorage
         let canOpenCase = true; // Флаг для проверки, можно ли открыть кейс
+        let availableNumbers = []; // Массив доступных чисел
     
+        // Обновляем баланс на экране
         function updateBalance() {
             const balanceElement = document.getElementById('balance');
             balanceElement.textContent = `Баланс: $${balance}`;
+            localStorage.setItem('balance', balance); // Сохраняем баланс в localStorage
         }
     
         function generateNumber() {
@@ -72,8 +75,8 @@
     
         function spinWheel(duration) {
             const minVisible = 1;    // Минимальное отображаемое число
-            const maxVisible = 106; // Максимальное отображаемое число
-            const minPlayable = 37;  // Минимальное число, которое может выпасть
+            const maxVisible = 106;  // Максимальное отображаемое число
+            const minPlayable = 34;  // Минимальное число, которое может выпасть
             const maxPlayable = 99;  // Максимальное число, которое может выпасть
             const spinner = document.getElementById('spinner');
             const numbersContainer = document.getElementById('numbers');
@@ -90,12 +93,11 @@
                 allNumbers.push(i);
             }
     
-            // Числа от 37 до 99 перемешиваются в случайном порядке
+            // Числа от 34 до 99 перемешиваются в случайном порядке
             let playableNumbers = [];
             for (let i = minPlayable; i <= maxPlayable; i++) {
                 playableNumbers.push(i);
             }
-            shuffleArray(playableNumbers);
     
             // Объединяем массивы (сначала "недоступные" числа, потом перемешанные доступные)
             let sortedNumbers = [...allNumbers];
@@ -125,14 +127,25 @@
                 numbersContainer.appendChild(numberElement);
             });
             
-    
             const startOffset = -(10 - minVisible) * numberWidth + centerOffset;
             numbersContainer.style.transition = 'none';
             numbersContainer.style.transform = `translateX(${startOffset}px)`;
     
             setTimeout(() => {
-                // Случайное число из диапазона 37–99
-                const finalNumber = Math.floor(Math.random() * (maxPlayable - minPlayable + 1)) + minPlayable;
+                // Мы убираем случайность чисел.
+                // Теперь каждое число будет выплачиваться одно за другим.
+                
+                if (availableNumbers.length === 0) {
+                    // Если доступных чисел больше нет, перезапускаем список.
+                    availableNumbers = [];
+                    for (let i = minPlayable; i <= maxPlayable; i++) {
+                        availableNumbers.push(i);
+                    }
+                    shuffleArray(availableNumbers); // Перемешиваем доступные числа
+                }
+
+                // Берем следующее доступное число из массива
+                const finalNumber = availableNumbers.pop();  // Убираем первое число из массива
                 const finalOffset = -((finalNumber - minVisible) * numberWidth) + centerOffset;
     
                 numbersContainer.style.transition = `transform ${duration}s ease-out`;
@@ -141,11 +154,13 @@
                 lastGeneratedNumber = finalNumber;
     
                 setTimeout(() => {
-                    document.getElementById('action-buttons').style.display = 'block';
+                    document.getElementById('action-buttons').style.display = 'block'; // Показываем кнопки после прокрута
+                    document.querySelector('button[onclick="sellInventoryNumber(lastGeneratedNumber)"]').disabled = false; // Разблокируем кнопку продажи
+                    document.querySelector('button[onclick="addToInventory()"]').disabled = false; // Разблокируем кнопку добавления в инвентарь
                 }, duration * 1000);
             }, 50);
         }
-    
+
         // Функция перемешивания массива
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -157,113 +172,50 @@
         function addToInventory() {
             inventory.push(lastGeneratedNumber);
             updateInventoryList();
-            resetAfterAction();
+            localStorage.setItem('inventory', JSON.stringify(inventory)); // Сохраняем инвентарь в localStorage
+            resetAfterAction(); // Сбрасываем действия и кнопки
         }
     
-        function sellNumber() {
-    // Применяем цены для указанных чисел
-    if (lastGeneratedNumber === 77 || lastGeneratedNumber === 7 || lastGeneratedNumber === 9 || lastGeneratedNumber === 2587) {
-        balance += 2587; // Цена 2587 долларов
-    } else if (lastGeneratedNumber === 34 || lastGeneratedNumber === 35 || lastGeneratedNumber === 10 || lastGeneratedNumber === 11) {
-        balance += 1145; // Цена 1145 долларов
-    } else if (lastGeneratedNumber === 36 || lastGeneratedNumber === 37 || lastGeneratedNumber === 38 || lastGeneratedNumber === 39 ||
-               lastGeneratedNumber === 42 || lastGeneratedNumber === 43 || lastGeneratedNumber === 15 || lastGeneratedNumber === 16) {
-        balance += 212; // Цена 212 долларов
-    } else if (lastGeneratedNumber === 40 || lastGeneratedNumber === 41 || lastGeneratedNumber === 45 || lastGeneratedNumber === 12 ||
-               lastGeneratedNumber === 13 || lastGeneratedNumber === 14) {
-        balance += 768; // Цена 768 долларов
-    } else if (lastGeneratedNumber === 66) {
-        balance += 2232; // Цена 2232 долларов
-    } else if (lastGeneratedNumber === 6 || lastGeneratedNumber === 47 || lastGeneratedNumber === 48 || lastGeneratedNumber === 49 ||
-               lastGeneratedNumber === 50 || lastGeneratedNumber === 60 || lastGeneratedNumber === 91) {
-        balance += 91; // Цена 91 доллар
-    } else if (lastGeneratedNumber === 60 || lastGeneratedNumber === 61 || lastGeneratedNumber === 62 || lastGeneratedNumber === 63 ||
-               lastGeneratedNumber === 64 || lastGeneratedNumber === 65 || lastGeneratedNumber === 66 || lastGeneratedNumber === 67 ||
-               lastGeneratedNumber === 25 || lastGeneratedNumber === 26 || lastGeneratedNumber === 27 || lastGeneratedNumber === 32) {
-        balance += 32; // Цена 32 доллара
-    } else if (lastGeneratedNumber === 67 || lastGeneratedNumber === 68 || lastGeneratedNumber === 69 || lastGeneratedNumber === 70 ||
-               lastGeneratedNumber === 71 || lastGeneratedNumber === 72 || lastGeneratedNumber === 73 || lastGeneratedNumber === 74 ||
-               lastGeneratedNumber === 75 || lastGeneratedNumber === 76 || lastGeneratedNumber === 77 || lastGeneratedNumber === 78 ||
-               lastGeneratedNumber === 79 || lastGeneratedNumber === 12) {
-        balance += 12; // Цена 12 долларов
-    } else if (lastGeneratedNumber === 80 || lastGeneratedNumber === 81 || lastGeneratedNumber === 82 || lastGeneratedNumber === 83 ||
-               lastGeneratedNumber === 84 || lastGeneratedNumber === 85 || lastGeneratedNumber === 86) {
-        balance += 52; // Цена 52 доллара
-    } else if (lastGeneratedNumber === 87 || lastGeneratedNumber === 88 || lastGeneratedNumber === 89 || lastGeneratedNumber === 90 ||
-               lastGeneratedNumber === 91 || lastGeneratedNumber === 92) {
-        balance += 2; // Цена 2 доллара
-    } else if (lastGeneratedNumber === 93 || lastGeneratedNumber === 94 || lastGeneratedNumber === 97) {
-        balance += 97; // Цена 97 долларов
-    } else if (lastGeneratedNumber === 2 || lastGeneratedNumber === 3 || lastGeneratedNumber === 495 || lastGeneratedNumber === 17 ||
-               lastGeneratedNumber === 18 || lastGeneratedNumber === 195 || lastGeneratedNumber === 21 || lastGeneratedNumber === 22 ||
-               lastGeneratedNumber === 23 || lastGeneratedNumber === 42) {
-        balance += 42; // Цена 42 доллара
-    } else if (lastGeneratedNumber === 95 || lastGeneratedNumber === 17 || lastGeneratedNumber === 18 || lastGeneratedNumber === 19) {
-        balance += 609; // Цена 609 долларов
-    } else if (lastGeneratedNumber === 29 || lastGeneratedNumber === 30 || lastGeneratedNumber === 31 || lastGeneratedNumber === 32 ||
-               lastGeneratedNumber === 34 || lastGeneratedNumber === 35 || lastGeneratedNumber === 36) {
-        balance += 83; // Цена 83 доллара
-    } else if (lastGeneratedNumber === 96) {
-        balance += 653; // Цена 653 доллара
-    } else if (lastGeneratedNumber === 97) {
-        balance += 3104; // Цена 3104 доллара
-    } else if (lastGeneratedNumber === 98) {
-        balance += 1; // Цена 1 доллар
-    } else if (lastGeneratedNumber === 100 || lastGeneratedNumber === 105 || lastGeneratedNumber === 33) {
-        balance += 1; // Цена 1 доллар
-    } else if (lastGeneratedNumber === 101 || lastGeneratedNumber === 1 || lastGeneratedNumber === 20) {
-        balance += 1; // Цена 1 доллар
-    }
-
-    updateBalance();
-    resetAfterAction();
-}
-
+        function sellInventoryNumber(number) {
+            let price = 0;
+    
+            // Устанавливаем цены для чисел
+            if ([34, 35, 92].includes(number)) {
+                price = 767;
+            } else if ([36, 42, 55, 62, 80, 82, 86].includes(number)) {
+                price = 81;
+            } else if ([37, 39, 41, 47, 53, 57, 61].includes(number)) {
+                price = 53;
+            } else {
+                price = 5;
+            }
+    
+            balance += price; // Добавляем цену к балансу
+            updateBalance();
+            inventory = inventory.filter(item => item !== number); // Удаляем число из инвентаря
+            updateInventoryList();
+            resetAfterAction(); // Сбрасываем действия и кнопки
+        }
     
         function resetAfterAction() {
-            canOpenCase = true;
-            document.getElementById('openCaseButton').disabled = false;
             document.getElementById('action-buttons').style.display = 'none';
+            document.getElementById('openCaseButton').disabled = false; // Разблокируем кнопку открытия кейса
+            canOpenCase = true; // Разрешаем открытие кейса
         }
     
         function updateInventoryList() {
             const inventoryList = document.getElementById('inventory-list');
-            inventoryList.innerHTML = '';
-        
+            inventoryList.innerHTML = ''; // Очищаем текущий список инвентаря
             inventory.forEach((number) => {
                 const listItem = document.createElement('li');
-                listItem.className = 'inventory-item';
-        
-                // Створюємо елемент зображення
-                const imgElement = document.createElement('img');
-                imgElement.src = `img/${number}.png`;  // Підставляємо шлях до зображення
-                imgElement.alt = `Image for ${number}`;
-                imgElement.className = 'inventory-image'; // Клас для стилів (за потреби)
-        
-                // Додаємо зображення до елемента списку
-                listItem.appendChild(imgElement);
-        
-                // Додаємо клікабельність для продажу
-                listItem.onclick = () => sellInventoryNumber(number);
-        
+                listItem.textContent = `Число ${number}`;
                 inventoryList.appendChild(listItem);
             });
         }
-        
     
-        function sellInventoryNumber(number) {
-    if (number === 99 || number === 6 || number === 8) {
-        balance += 3000; // Для чисел 99, 6 и 8 цена 3000 долларов
-    } else if (number >= 37 && number <= 39 || number >= 61 && number <= 99) {
-        balance += 50; // Остальные числа в этом диапазоне стоят 50 долларов
-    } else if (number >= 40 && number <= 60) {
-        balance += 200; // Числа от 40 до 60 стоят 200 долларов
-    }
-    inventory = inventory.filter((item) => item !== number);
-    updateBalance();
-    updateInventoryList();
-}
+        // Загрузим инвентарь при старте
+        updateInventoryList();
+        updateBalance();  // Обновим баланс при загрузке страницы
     </script>
-    
 </body>
 </html>
