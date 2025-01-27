@@ -123,3 +123,147 @@ button:hover {
   transform: translateX(-50%);
   z-index: 1;
 }
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  position: relative;
+  text-align: center;
+  background: #1c1c1c;
+  padding: 20px 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  width: 800px;
+}
+
+.inventory {
+  width: 200px;
+  padding: 20px;
+  background: #333;
+  border-radius: 10px;
+  margin-right: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.inventory h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+#inventory-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.spinner {
+  width: 360px;
+  height: 60px;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #333;
+  border-radius: 10px;
+  margin: 20px auto;
+  background: #222;
+  box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.numbers {
+  display: flex;
+  transition: transform 3.5s ease-out;
+}
+
+.number {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  background: #333;
+  border-right: 1px solid #444;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.number:last-child {
+  border-right: none;
+}
+
+.highlight {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background-color: #ff4747;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+button {
+  margin: 10px 5px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  background: #ff4747;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+  background: #ff6161;
+  transform: scale(1.05);
+}
+
+.balance {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #00ff00;
+}
+
+.action-buttons {
+  display: none;
+  margin-top: 20px;
+}
+
+.inventory-item {
+  cursor: pointer;
+  margin: 5px;
+  padding: 5px;
+  background: #444;
+  border-radius: 5px;
+  color: #fff;
+  text-align: center;
+}
+
+.inventory-item:hover {
+  background: #555;
+}
+.number-image {
+  width: 60px;   /* Налаштуйте розміри зображення */
+  height: 60px;
+}
+
+.inventory-image {
+  width: 40px;   /* Налаштуйте розміри зображення в інвентарі */
+  height: 40px;
+}
+
