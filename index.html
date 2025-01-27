@@ -27,22 +27,21 @@
 
             <div id="action-buttons" class="action-buttons">
                 <button onclick="sellInventoryNumber(lastGeneratedNumber)">Продать</button>
+
                 <button onclick="addToInventory()">Положить в инвентарь</button>
             </div>
         </div>
     </div>
     <script>
-        let balance = parseInt(localStorage.getItem('balance')) || 400; // Считываем баланс из localStorage, если он есть, или ставим 400 по умолчанию
+        let balance = 400;
         let lastGeneratedNumber = null;
-        let inventory = JSON.parse(localStorage.getItem('inventory')) || []; // Считываем инвентарь из localStorage
+        let inventory = [];
         let canOpenCase = true; // Флаг для проверки, можно ли открыть кейс
         let availableNumbers = []; // Массив доступных чисел
     
-        // Обновляем баланс на экране
         function updateBalance() {
             const balanceElement = document.getElementById('balance');
             balanceElement.textContent = `Баланс: $${balance}`;
-            localStorage.setItem('balance', balance); // Сохраняем баланс в localStorage
         }
     
         function generateNumber() {
@@ -154,10 +153,11 @@
                 lastGeneratedNumber = finalNumber;
     
                 setTimeout(() => {
-                    document.getElementById('action-buttons').style.display = 'block'; // Показываем кнопки после прокрута
-                    document.querySelector('button[onclick="sellInventoryNumber(lastGeneratedNumber)"]').disabled = false; // Разблокируем кнопку продажи
-                    document.querySelector('button[onclick="addToInventory()"]').disabled = false; // Разблокируем кнопку добавления в инвентарь
-                }, duration * 1000);
+    document.getElementById('action-buttons').style.display = 'block'; // Показываем кнопки после прокрута
+    document.querySelector('button[onclick="sellInventoryNumber(lastGeneratedNumber)"]').disabled = false; // Разблокируем кнопку продажи
+    document.querySelector('button[onclick="addToInventory()"]').disabled = false; // Разблокируем кнопку добавления в инвентарь
+}, duration * 1000);
+
             }, 50);
         }
 
@@ -170,52 +170,118 @@
         }
     
         function addToInventory() {
-            inventory.push(lastGeneratedNumber);
-            updateInventoryList();
-            localStorage.setItem('inventory', JSON.stringify(inventory)); // Сохраняем инвентарь в localStorage
-            resetAfterAction(); // Сбрасываем действия и кнопки
-        }
+    inventory.push(lastGeneratedNumber);
+    updateInventoryList();
+    resetAfterAction(); // Сбрасываем действия и кнопки
+}
+
+
     
-        function sellInventoryNumber(number) {
-            let price = 0;
-    
-            // Устанавливаем цены для чисел
-            if ([34, 35, 92].includes(number)) {
-                price = 767;
-            } else if ([36, 42, 55, 62, 80, 82, 86].includes(number)) {
-                price = 81;
-            } else if ([37, 39, 41, 47, 53, 57, 61].includes(number)) {
-                price = 53;
-            } else {
-                price = 5;
-            }
-    
-            balance += price; // Добавляем цену к балансу
+        function sellNumber() {
+            // Применяем цены для указанных чисел
+            // Здесь ваш код для продажи
             updateBalance();
-            inventory = inventory.filter(item => item !== number); // Удаляем число из инвентаря
-            updateInventoryList();
-            resetAfterAction(); // Сбрасываем действия и кнопки
+            resetAfterAction();
         }
     
         function resetAfterAction() {
-            document.getElementById('action-buttons').style.display = 'none';
-            document.getElementById('openCaseButton').disabled = false; // Разблокируем кнопку открытия кейса
-            canOpenCase = true; // Разрешаем открытие кейса
-        }
+    canOpenCase = true;
+    document.getElementById('openCaseButton').disabled = false;
+    document.getElementById('action-buttons').style.display = 'none'; // Скрываем кнопки
+    document.querySelector('button[onclick="sellInventoryNumber(lastGeneratedNumber)"]').disabled = true; // Блокируем кнопку продажи
+    document.querySelector('button[onclick="addToInventory()"]').disabled = true; // Блокируем кнопку добавления в инвентарь
+}
+
+
     
         function updateInventoryList() {
             const inventoryList = document.getElementById('inventory-list');
-            inventoryList.innerHTML = ''; // Очищаем текущий список инвентаря
+            inventoryList.innerHTML = '';
+        
             inventory.forEach((number) => {
                 const listItem = document.createElement('li');
-                listItem.textContent = `Число ${number}`;
+                listItem.className = 'inventory-item';
+        
+                // Створюємо елемент зображення
+                const imgElement = document.createElement('img');
+                imgElement.src = `img/${number}.png`;  // Підставляємо шлях до зображення
+                imgElement.alt = `Image for ${number}`;
+                imgElement.className = 'inventory-image'; // Клас для стилів (за потреби)
+        
+                // Додаємо зображення до елемента списку
+                listItem.appendChild(imgElement);
+        
+                // Додаємо клікабельність для продажу
+                listItem.onclick = () => sellInventoryNumber(number);
+        
                 inventoryList.appendChild(listItem);
             });
         }
-    
-        // Загрузим инвентарь при старте
+
+        function sellInventoryNumber(number) {
+    let price = 0;
+
+    // Устанавливаем цены для чисел
+    if ([34, 35, 92].includes(number)) {
+        price = 767;
+    } else if ([36, 42, 55, 62, 80, 82, 86].includes(number)) {
+        price = 81;
+    } else if ([37, 39, 71, 98].includes(number)) {
+        price = 173;
+    } else if ([38, 57, 58, 60, 63, 68, 69, 72, 73, 74, 75, 76, 85, 89].includes(number)) {
+        price = 14;
+    } else if ([40, 43, 45].includes(number)) {
+        price = 555;
+    } else if ([41, 51, 53, 70, 88].includes(number)) {
+        price = 34;
+    } else if ([44, 96].includes(number)) {
+        price = 551;
+    } else if ([46, 47, 48, 49, 50, 56, 84].includes(number)) {
+        price = 101;
+    } else if ([52, 81, 87].includes(number)) {
+        price = 276;
+    } else if ([54,90, 93].includes(number)) {
+        price = 15;
+    } else if ([59,78, 91].includes(number)) {
+        price = 88;
+    } else if ([61, 65, 67].includes(number)) {
+        price = 99;
+    } else if ([64, 94].includes(number)) {
+        price = 170;
+    } else if ([83, 95].includes(number)) {
+        price = 333;
+    } else if ([66].includes(number)) {
+        price = 666;
+    } else if ([97].includes(number)) {
+        price = 2777;
+    } else if ([99].includes(number)) {
+        price = 3333;
+    } else if ([79].includes(number)) {
+        price = 1112;
+    } else if ([77].includes(number)) {
+        price = 2221;
+    }
+
+    // Проверяем, есть ли цена для числа
+    if (price > 0) {
+        // Добавляем стоимость к балансу
+        balance += price;
+
+        // Удаляем число из инвентаря
+        inventory = inventory.filter(item => item !== number);
+
+        // Обновляем интерфейс: баланс и список инвентаря
+        updateBalance();
         updateInventoryList();
-        updateBalance();  // Обновим баланс при загрузке страницы
+
+        // Блокируем кнопку после продажи
+        resetAfterAction(); // Скрываем кнопки после продажи
+    } else {
+        alert("Ошибка: цена для этого числа не установлена.");
+    }
+}
+
+
     </script>
 </body>
 </html>
