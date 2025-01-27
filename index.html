@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Number Spinner</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            position: relative;
+            text-align: center;
+            background: #1c1c1c;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+            width: 800px;
+        }
+
+        .inventory {
+            width: 200px;
+            padding: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin-right: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .inventory h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #inventory-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .spinner {
+            width: 360px;
+            height: 60px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #333;
+            border-radius: 10px;
+            margin: 20px auto;
+            background: #222;
+            box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .numbers {
+            display: flex;
+            transition: transform 3.5s ease-out;
+        }
+
+        .number {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            background: #333;
+            border-right: 1px solid #444;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .number:last-child {
+            border-right: none;
+        }
+
+        .highlight {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background-color: #ff4747;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            background: #ff4747;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: #ff6161;
+            transform: scale(1.05);
+        }
+
+        .balance {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff00;
+        }
+
+        .action-buttons {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .inventory-item {
+            cursor: pointer;
+            margin: 5px;
+            padding: 5px;
+            background: #444;
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .inventory-item:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="inventory">
+            <h3>Инвентарь</h3>
+            <ul id="inventory-list">
+                <!-- Список инвентаря -->
+            </ul>
+        </div>
+        <div>
+            <button id="openCaseButton" onclick="generateNumber()">Открыть кейс</button>
+            <button onclick="generateNumberFast()">Открыть быстро</button>
+            <div class="spinner" id="spinner">
+                <div class="numbers" id="numbers">
+                    <!-- Numbers will be dynamically generated here -->
+                </div>
+                <div class="highlight"></div>
+            </div>
+            <div class="balance" id="balance">Баланс: $АЛЕГА УЗНАЙ КА БАЛАНСИК$</div>
+
+            <div id="action-buttons" class="action-buttons">
+                <button onclick="sellNumber()">Продать</button>
+                <button onclick="addToInventory()">Положить в инвентарь</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let balance = 400;
+        let lastGeneratedNumber = null;
+        let inventory = [];
+        let canOpenCase = true; // Флаг для проверки, можно ли открыть кейс
+    
+        function updateBalance() {
+            const balanceElement = document.getElementById('balance');
+            balanceElement.textContent = `Баланс: $${balance}`;
+        }
+    
+        function generateNumber() {
+            if (balance >= 100 && canOpenCase) {
+                balance -= 100;
+                canOpenCase = false; // Блокируем возможность открытия кейса
+                updateBalance();
+                document.getElementById('openCaseButton').disabled = true; // Блокируем кнопку открытия кейса
+                spinWheel(3.5);
+            } else if (!canOpenCase) {
+                alert("Вы должны выбрать действие с числом перед тем, как открыть кейс.");
+            } else {
+                alert("Недостаточно средств на балансе!");
+            }
+        }
+    
+        function generateNumberFast() {
+            if (balance >= 100 && canOpenCase) {
+                balance -= 100;
+                canOpenCase = false;
+                updateBalance();
+                document.getElementById('openCaseButton').disabled = true; // Блокируем кнопку открытия кейса
+                spinWheel(1);
+            } else if (!canOpenCase) {
+                alert("Вы должны выбрать действие с числом перед тем, как открыть кейс.");
+            } else {
+                alert("Недостаточно средств на балансе!");
+            }
+        }
+    
+        function spinWheel(duration) {
+            const minVisible = 1;    // Минимальное отображаемое число
+            const maxVisible = 106; // Максимальное отображаемое число
+            const minPlayable = 37;  // Минимальное число, которое может выпасть
+            const maxPlayable = 99;  // Максимальное число, которое может выпасть
+            const spinner = document.getElementById('spinner');
+            const numbersContainer = document.getElementById('numbers');
+    
+            numbersContainer.innerHTML = '';
+    
+            const numberWidth = 60;
+            const spinnerWidth = spinner.offsetWidth;
+            const centerOffset = (spinnerWidth / 2) - (numberWidth / 2);
+    
+            // Массив всех чисел от 1 до 106
+            let allNumbers = [];
+            for (let i = minVisible; i <= maxVisible; i++) {
+                allNumbers.push(i);
+            }
+    
+            // Числа от 37 до 99 перемешиваются в случайном порядке
+            let playableNumbers = [];
+            for (let i = minPlayable; i <= maxPlayable; i++) {
+                playableNumbers.push(i);
+            }
+            shuffleArray(playableNumbers);
+    
+            // Объединяем массивы (сначала "недоступные" числа, потом перемешанные доступные)
+            let sortedNumbers = [...allNumbers];
+            for (let i = 0; i < playableNumbers.length; i++) {
+                sortedNumbers[minPlayable - 1 + i] = playableNumbers[i];
+            }
+    
+            // Создаем элементы для всех чисел
+            sortedNumbers.forEach((number) => {
+                const numberElement = document.createElement('div');
+                numberElement.className = 'number';
+                numberElement.textContent = number;
+    
+                // Числа от 1 до 36 и от 100 до 106 визуально выделяем
+                if ((number >= 1 && number <= 36) || (number >= 100 && number <= 106)) {
+                    numberElement.style.color = '#888'; // Затеняем числа
+                }
+    
+                numbersContainer.appendChild(numberElement);
+            });
+    
+            const startOffset = -(10 - minVisible) * numberWidth + centerOffset;
+            numbersContainer.style.transition = 'none';
+            numbersContainer.style.transform = `translateX(${startOffset}px)`;
+    
+            setTimeout(() => {
+                // Случайное число из диапазона 37–99
+                const finalNumber = Math.floor(Math.random() * (maxPlayable - minPlayable + 1)) + minPlayable;
+                const finalOffset = -((finalNumber - minVisible) * numberWidth) + centerOffset;
+    
+                numbersContainer.style.transition = `transform ${duration}s ease-out`;
+                numbersContainer.style.transform = `translateX(${finalOffset}px)`;
+    
+                lastGeneratedNumber = finalNumber;
+    
+                setTimeout(() => {
+                    document.getElementById('action-buttons').style.display = 'block';
+                }, duration * 1000);
+            }, 50);
+        }
+    
+        // Функция перемешивания массива
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+    
+        function addToInventory() {
+            inventory.push(lastGeneratedNumber);
+            updateInventoryList();
+            resetAfterAction();
+        }
+    
+        function sellNumber() {
+    // Применяем цены для указанных чисел
+    if (lastGeneratedNumber === 77 || lastGeneratedNumber === 7 || lastGeneratedNumber === 9 || lastGeneratedNumber === 2587) {
+        balance += 2587; // Цена 2587 долларов
+    } else if (lastGeneratedNumber === 34 || lastGeneratedNumber === 35 || lastGeneratedNumber === 10 || lastGeneratedNumber === 11) {
+        balance += 1145; // Цена 1145 долларов
+    } else if (lastGeneratedNumber === 36 || lastGeneratedNumber === 37 || lastGeneratedNumber === 38 || lastGeneratedNumber === 39 ||
+               lastGeneratedNumber === 42 || lastGeneratedNumber === 43 || lastGeneratedNumber === 15 || lastGeneratedNumber === 16) {
+        balance += 212; // Цена 212 долларов
+    } else if (lastGeneratedNumber === 40 || lastGeneratedNumber === 41 || lastGeneratedNumber === 45 || lastGeneratedNumber === 12 ||
+               lastGeneratedNumber === 13 || lastGeneratedNumber === 14) {
+        balance += 768; // Цена 768 долларов
+    } else if (lastGeneratedNumber === 66) {
+        balance += 2232; // Цена 2232 долларов
+    } else if (lastGeneratedNumber === 6 || lastGeneratedNumber === 47 || lastGeneratedNumber === 48 || lastGeneratedNumber === 49 ||
+               lastGeneratedNumber === 50 || lastGeneratedNumber === 60 || lastGeneratedNumber === 91) {
+        balance += 91; // Цена 91 доллар
+    } else if (lastGeneratedNumber === 60 || lastGeneratedNumber === 61 || lastGeneratedNumber === 62 || lastGeneratedNumber === 63 ||
+               lastGeneratedNumber === 64 || lastGeneratedNumber === 65 || lastGeneratedNumber === 66 || lastGeneratedNumber === 67 ||
+               lastGeneratedNumber === 25 || lastGeneratedNumber === 26 || lastGeneratedNumber === 27 || lastGeneratedNumber === 32) {
+        balance += 32; // Цена 32 доллара
+    } else if (lastGeneratedNumber === 67 || lastGeneratedNumber === 68 || lastGeneratedNumber === 69 || lastGeneratedNumber === 70 ||
+               lastGeneratedNumber === 71 || lastGeneratedNumber === 72 || lastGeneratedNumber === 73 || lastGeneratedNumber === 74 ||
+               lastGeneratedNumber === 75 || lastGeneratedNumber === 76 || lastGeneratedNumber === 77 || lastGeneratedNumber === 78 ||
+               lastGeneratedNumber === 79 || lastGeneratedNumber === 12) {
+        balance += 12; // Цена 12 долларов
+    } else if (lastGeneratedNumber === 80 || lastGeneratedNumber === 81 || lastGeneratedNumber === 82 || lastGeneratedNumber === 83 ||
+               lastGeneratedNumber === 84 || lastGeneratedNumber === 85 || lastGeneratedNumber === 86) {
+        balance += 52; // Цена 52 доллара
+    } else if (lastGeneratedNumber === 87 || lastGeneratedNumber === 88 || lastGeneratedNumber === 89 || lastGeneratedNumber === 90 ||
+               lastGeneratedNumber === 91 || lastGeneratedNumber === 92) {
+        balance += 2; // Цена 2 доллара
+    } else if (lastGeneratedNumber === 93 || lastGeneratedNumber === 94 || lastGeneratedNumber === 97) {
+        balance += 97; // Цена 97 долларов
+    } else if (lastGeneratedNumber === 2 || lastGeneratedNumber === 3 || lastGeneratedNumber === 495 || lastGeneratedNumber === 17 ||
+               lastGeneratedNumber === 18 || lastGeneratedNumber === 195 || lastGeneratedNumber === 21 || lastGeneratedNumber === 22 ||
+               lastGeneratedNumber === 23 || lastGeneratedNumber === 42) {
+        balance += 42; // Цена 42 доллара
+    } else if (lastGeneratedNumber === 95 || lastGeneratedNumber === 17 || lastGeneratedNumber === 18 || lastGeneratedNumber === 19) {
+        balance += 609; // Цена 609 долларов
+    } else if (lastGeneratedNumber === 29 || lastGeneratedNumber === 30 || lastGeneratedNumber === 31 || lastGeneratedNumber === 32 ||
+               lastGeneratedNumber === 34 || lastGeneratedNumber === 35 || lastGeneratedNumber === 36) {
+        balance += 83; // Цена 83 доллара
+    } else if (lastGeneratedNumber === 96) {
+        balance += 653; // Цена 653 доллара
+    } else if (lastGeneratedNumber === 97) {
+        balance += 3104; // Цена 3104 доллара
+    } else if (lastGeneratedNumber === 98) {
+        balance += 1; // Цена 1 доллар
+    } else if (lastGeneratedNumber === 100 || lastGeneratedNumber === 105 || lastGeneratedNumber === 33) {
+        balance += 1; // Цена 1 доллар
+    } else if (lastGeneratedNumber === 101 || lastGeneratedNumber === 1 || lastGeneratedNumber === 20) {
+        balance += 1; // Цена 1 доллар
+    }
+
+    updateBalance();
+    resetAfterAction();
+}
+
+    
+        function resetAfterAction() {
+            canOpenCase = true;
+            document.getElementById('openCaseButton').disabled = false;
+            document.getElementById('action-buttons').style.display = 'none';
+        }
+    
+        function updateInventoryList() {
+            const inventoryList = document.getElementById('inventory-list');
+            inventoryList.innerHTML = '';
+    
+            inventory.forEach((number) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'inventory-item';
+                listItem.textContent = `Число ${number}`;
+                listItem.onclick = () => sellInventoryNumber(number);
+                inventoryList.appendChild(listItem);
+            });
+        }
+    
+        function sellInventoryNumber(number) {
+    if (number === 99 || number === 6 || number === 8) {
+        balance += 3000; // Для чисел 99, 6 и 8 цена 3000 долларов
+    } else if (number >= 37 && number <= 39 || number >= 61 && number <= 99) {
+        balance += 50; // Остальные числа в этом диапазоне стоят 50 долларов
+    } else if (number >= 40 && number <= 60) {
+        balance += 200; // Числа от 40 до 60 стоят 200 долларов
+    }
+    inventory = inventory.filter((item) => item !== number);
+    updateBalance();
+    updateInventoryList();
+}
+    </script>
+    
+</body>
+</html>
